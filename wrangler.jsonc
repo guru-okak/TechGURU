@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "techguru-api",
+  "main": "server/index.ts",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": false,
+  "triggers": {"crons": ["0 * * * *", "0 0 * * *"]},
+  "vars": {
+    "APP_ENV": "local",
+    "ENABLE_LOCAL_CHECKS": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "techguru-demo",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+  "tsconfig": "tsconfig.server.json"
+}

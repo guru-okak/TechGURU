@@ -1,0 +1,27 @@
+/* Shared motion language: quick response, softer entrances, no idle loops. */
+:root{--motion-fast:160ms;--motion-ui:220ms;--motion-reveal:360ms;--motion-ease:cubic-bezier(.2,.8,.2,1)}
+.fade-enter-active{transition:opacity var(--motion-ui) var(--motion-ease),transform var(--motion-ui) var(--motion-ease)}
+.fade-leave-active{transition:opacity 120ms ease}
+.fade-enter-from{opacity:0;transform:translateY(6px)}
+.fade-leave-to{opacity:0;transform:none}
+.btn-base{transition-timing-function:var(--motion-ease)!important}
+.btn-base svg{transition:translate var(--motion-ui) var(--motion-ease)}
+input,textarea,select{transition:border-color var(--motion-fast) ease,box-shadow var(--motion-ui) ease,background-color var(--motion-ui) ease}
+.admin-point-card,.catalog-service-card,.channel-card,.client-service-card{transition:translate var(--motion-ui) var(--motion-ease),box-shadow var(--motion-ui) ease,border-color var(--motion-ui) ease}
+.admin-point-background{transition:scale 500ms var(--motion-ease)}
+.faq-toggle,.faq-glyph{transition:transform var(--motion-ui) var(--motion-ease),background-color var(--motion-fast) ease}
+@media(hover:hover) and (pointer:fine){
+  .btn-base:hover:not(:disabled):not([aria-disabled=true]){translate:0 -1px}
+  .btn-base:hover svg{translate:1px 0}
+  .admin-point-card:hover,.catalog-service-card:hover,.channel-card:hover,.client-service-card:hover{translate:0 -3px;box-shadow:0 12px 28px #0717291a}
+  .admin-point-card:hover>.admin-point-background{scale:1.025}
+}
+.btn-base:active:not(:disabled){translate:0 0}
+@media(prefers-reduced-motion:reduce){
+  html:focus-within,html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0ms!important}
+  .fade-enter-from,.fade-leave-to{transform:none!important}
+  .btn-base:hover,.admin-point-card:hover,.catalog-service-card:hover,.channel-card:hover,.client-service-card:hover{translate:none!important}
+  .admin-point-card:hover>.admin-point-background{scale:1!important}
+}
+.stagger>*{animation-duration:var(--motion-reveal);animation-timing-function:var(--motion-ease);animation-delay:min(calc(var(--i,0)*35ms),140ms)}

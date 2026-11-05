@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.wrangler/
+.cache/
+.local/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+coverage/
+
+# Local diagnostic runs and early static prototype
+qa-*.mjs
+techguru_dashboard_updated*.html
+*.log
+
+# Historical screenshots and local audit outputs
+docs/*.jpg
+docs/*.png
+docs/*.json

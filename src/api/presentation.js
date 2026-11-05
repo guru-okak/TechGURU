@@ -1,0 +1,5 @@
+import {clientServiceMedia} from '../data/clientServiceMedia'
+export function mediaKey(s){const n=s.name??'';const rules=[[/вароч|плит/i,21],[/микроволн/i,20],[/пылесос/i,19],[/посудомо/i,18],[/фотоаппарат/i,17],[/пристав/i,16],[/часов|часы/i,15],[/наушник/i,14],[/монитор/i,13],[/принтер/i,12],[/холодиль/i,11],[/стираль/i,10],[/подсвет/i,9],[/телевиз/i,8],[/планшет/i,7],[/Windows|ПО$/i,6],[/клавиатур/i,5],[/ноутбук/i,4],[/аккумулятор/i,3],[/экран/i,2]];return rules.find(([r])=>r.test(n))?.[1]??1}
+const arts={1:'smartphone',2:'smartphone',3:'smartphone',4:'laptop',5:'laptop',6:'laptop',7:'tablet',8:'tv',9:'tv',10:'washer',11:'fridge',12:'printer',13:'monitor',14:'headphones',15:'watch',16:'console',17:'camera',18:'dishwasher',19:'vacuum',20:'microwave',21:'hob'}
+export function serviceMedia(s){const key=mediaKey(s);return {...clientServiceMedia[key],category:s.equipment_category,icon:arts[key],tag:s.equipment_category,subtitle:clientServiceMedia[key].description}}
+export function serviceView(s){return {...s,...serviceMedia(s),price:`от ${new Intl.NumberFormat('ru-RU').format(s.base_price)} ₽`}}

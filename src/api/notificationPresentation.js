@@ -1,0 +1,2 @@
+const statuses={new:'новая',confirmed:'подтверждена',assigned:'мастер назначен',in_progress:'в работе',waiting_parts:'ожидание запчастей',ready_for_pickup:'готова к выдаче',completed:'выполнена',closed:'закрыта',cancelled:'отменена',rejected:'отклонена'}
+export function notificationText(text){return String(text??'').replace(/\b(new|confirmed|assigned|in_progress|waiting_parts|ready_for_pickup|completed|closed|cancelled|rejected)\b/g,value=>statuses[value])}

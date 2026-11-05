@@ -1,0 +1,344 @@
+@import "tailwindcss";
+
+/* Тёмная тема включается атрибутом data-theme="dark" на <html> */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ===== Дизайн-токены (Светлая тема) ===== */
+:root {
+  color-scheme: light;
+  --blue: #2563eb;
+  --blue2: #3b82f6;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface2: #f1f5f9;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --sidebar: #ffffff;
+  --shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+  --shadow-lift: 0 16px 36px rgba(15, 23, 42, 0.14);
+  --green: #059669;
+  --amber: #d97706;
+  --red: #dc2626;
+  --purple: #7c3aed;
+  --orange: #ea580c;
+  --overlay: rgba(15, 23, 42, 0.5);
+  --motion: 0.3s ease;
+}
+
+/* ===== Дизайн-токены (Тёмная тема) ===== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --blue: #3b82f6;
+  --bg: #0b1220;
+  --surface: #111c2f;
+  --surface2: #1b2940;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #2b3a52;
+  --sidebar: #0f192b;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+  --shadow-lift: 0 16px 36px rgba(0, 0, 0, 0.42);
+  --green: #34d399;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --purple: #c4b5fd;
+  --orange: #fb923c;
+  --overlay: rgba(2, 6, 23, 0.7);
+}
+
+/* Пробрасываем CSS-переменные в утилиты Tailwind:
+   bg-surface, text-muted, border-line, bg-brand, shadow-card и т.д. */
+@theme inline {
+  --color-app: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-content: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-sidebar: var(--sidebar);
+  --color-brand: var(--blue);
+  --color-brand2: var(--blue2);
+  --color-ok: var(--green);
+  --color-warn: var(--amber);
+  --color-danger: var(--red);
+  --color-accent: var(--purple);
+  --color-orange: var(--orange);
+
+  --shadow-card: var(--shadow);
+
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+    /* Резервируем место под вертикальный скроллбар всегда, чтобы ширина
+       вьюпорта не менялась при появлении/исчезновении полосы прокрутки.
+       Это убирает «дрожание» фиксированного Sidebar и центрированного контента. */
+    scrollbar-gutter: stable;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color var(--motion), color var(--motion);
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Карточка */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease,
+      border-color 0.2s ease, background-color var(--motion);
+  }
+
+  /* Интерактивная карточка: мягкий подъём + усиленная тень при наведении */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: color-mix(in srgb, var(--blue) 30%, var(--border));
+  }
+  .card-hover:active {
+    transform: translateY(-1px) scale(0.995);
+  }
+
+  /* Промо-баннеры с фото: без transform при наведении, иначе маска фото
+     даёт цветную кромку по краю картинки во время анимации. */
+  .offer-card {
+    transition: box-shadow 0.25s ease, filter 0.25s ease;
+  }
+  .offer-card:hover {
+    box-shadow: var(--shadow-lift);
+    filter: brightness(1.06);
+  }
+
+  /* Бейдж статуса с цветной точкой */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    max-width: 100%;
+    padding: 0.3rem 0.55rem;
+    border-radius: 0.45rem;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    transition: background-color var(--motion), color var(--motion);
+  }
+  .badge::before {
+    content: "";
+    flex: 0 0 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge-gray {
+    color: var(--muted);
+    background: color-mix(in srgb, var(--muted) 14%, transparent);
+  }
+  .badge-blue {
+    color: var(--blue);
+    background: color-mix(in srgb, var(--blue) 14%, transparent);
+  }
+  .badge-green {
+    color: var(--green);
+    background: color-mix(in srgb, var(--green) 15%, transparent);
+  }
+  .badge-amber {
+    color: var(--amber);
+    background: color-mix(in srgb, var(--amber) 16%, transparent);
+  }
+  .badge-purple {
+    color: var(--purple);
+    background: color-mix(in srgb, var(--purple) 15%, transparent);
+  }
+  .badge-orange {
+    color: var(--orange);
+    background: color-mix(in srgb, var(--orange) 16%, transparent);
+  }
+  .badge-red {
+    color: var(--red);
+    background: color-mix(in srgb, var(--red) 14%, transparent);
+  }
+
+  /* Поля ввода */
+  .control {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.6rem 0.75rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .control:hover {
+    border-color: color-mix(in srgb, var(--muted) 40%, var(--border));
+  }
+  .control.is-error {
+    border-color: var(--red);
+  }
+
+  /* Кнопки */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 650;
+    transition: background-color 0.18s ease, border-color 0.18s ease,
+      color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  }
+  .btn:hover {
+    border-color: color-mix(in srgb, var(--muted) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
+  }
+  .btn:disabled:active {
+    transform: none;
+  }
+  .btn-primary {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: color-mix(in srgb, var(--blue) 88%, #000);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--blue) 35%, transparent);
+  }
+}
+
+/* Тост-уведомления */
+.toast {
+  pointer-events: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  animation: toast-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Каскадное появление списков (staggered fade-in) */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger > * {
+  /* backwards (не both!): после завершения анимации управление transform
+     возвращается обычным стилям, чтобы работал hover-подъём .card-hover.
+     Задержка считается по индексу элемента (--i задаётся в шаблоне),
+     поэтому анимация равномерно применяется к любому количеству карточек. */
+  animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Лендинг: светло-синий блок в светлой теме, тёмно-синий — в тёмной */
+.landing-band {
+  background-color: #f3f7ff;
+  background-image:
+    radial-gradient(900px 420px at 85% -10%, rgba(37, 99, 235, 0.12), transparent 60%),
+    radial-gradient(700px 460px at 0% 110%, rgba(29, 78, 216, 0.08), transparent 60%),
+    linear-gradient(160deg, #f8fafc 0%, #f0f5ff 55%, #e8f0fe 100%);
+}
+.landing-band-card {
+  background-image: linear-gradient(160deg, #ffffff, #f5f9ff);
+}
+[data-theme="dark"] .landing-band {
+  background-color: #050c1d;
+  background-image:
+    radial-gradient(900px 420px at 85% -10%, rgba(37, 99, 235, 0.3), transparent 60%),
+    radial-gradient(700px 460px at 0% 110%, rgba(29, 78, 216, 0.22), transparent 60%),
+    linear-gradient(160deg, #04091a 0%, #061530 52%, #081a3d 100%);
+}
+[data-theme="dark"] .landing-band-card {
+  background-image: linear-gradient(160deg, rgba(26, 56, 108, 0.86), rgba(9, 24, 54, 0.94));
+}
+
+/* Лендинг: фон секции «Точки приёма» */
+.landing-contacts {
+  background-color: #f3f8ff;
+  background-image:
+    radial-gradient(700px 360px at 0% 0%, rgba(37, 99, 235, 0.1), transparent 70%),
+    radial-gradient(600px 340px at 100% 0%, rgba(37, 99, 235, 0.1), transparent 70%);
+}
+[data-theme="dark"] .landing-contacts {
+  background-color: #0b1220;
+  background-image:
+    radial-gradient(700px 360px at 0% 0%, rgba(59, 130, 246, 0.14), transparent 70%),
+    radial-gradient(600px 340px at 100% 0%, rgba(59, 130, 246, 0.14), transparent 70%);
+}

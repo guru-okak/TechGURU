@@ -1,0 +1,13 @@
+<script setup>
+import {computed} from 'vue'
+import photo from '../assets/admin/parts-care.webp'
+import {adminStock,stockView,purchaseOrders,purchaseItems} from '../data/admin'
+import Button from './ui/Button.vue'
+const props=defineProps({compact:Boolean})
+const shortage=computed(()=>adminStock.map(stockView).filter(s=>s.available<s.min_stock))
+const reserved=computed(()=>adminStock.reduce((sum,s)=>sum+s.reserved_quantity,0))
+const onWay=computed(()=>purchaseOrders.filter(o=>o.status==='sent'))
+const expected=computed(()=>purchaseItems.filter(i=>onWay.value.some(o=>o.id===i.purchase_order_id)).reduce((sum,i)=>sum+i.quantity,0))
+</script>
+<template><section class="supply-brief" :class="{'supply-brief-compact':compact}" aria-label="Сводка снабжения"><img v-if="!compact" :src="photo" alt="Аккуратно организованные запчасти на рабочем столе" loading="lazy"/><div class="supply-brief-copy"><span class="supply-eyebrow">ГОТОВНОСТЬ К РЕМОНТУ</span><h2>{{compact?'Поставки под контролем':'Нужная деталь. В нужный момент.'}}</h2><p>Резерв уже закреплён за заявками. Для новых работ ориентируйтесь на доступный остаток.</p><div class="supply-brief-facts"><div><strong>{{shortage.length}}</strong><span>позиций к пополнению</span></div><div><strong>{{reserved}}</strong><span>единиц в резерве</span></div><div><strong>{{expected}}</strong><span>единиц в пути</span></div></div><Button :to="compact?'/admin/warehouse':'/admin/orders'" variant="outline" size="sm">{{compact?'Проверить остатки':'Перейти к закупкам'}} →</Button></div></section></template>
+<style scoped>.supply-brief{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(0,1.8fr);overflow:hidden;border:1px solid var(--border);border-radius:22px;background:var(--surface)}.supply-brief>img{width:100%;height:100%;min-height:250px;object-fit:cover}.supply-brief-copy{padding:27px 30px}.supply-eyebrow{font-size:10px;letter-spacing:.12em;font-weight:750;color:var(--blue)}.supply-brief h2{font-size:23px;font-weight:750;letter-spacing:-.03em;margin:9px 0}.supply-brief p{font-size:14px;line-height:1.8;color:var(--muted);max-width:650px}.supply-brief-facts{display:flex;gap:28px;margin:19px 0}.supply-brief-facts>div{display:grid;gap:3px}.supply-brief-facts strong{font-size:24px;font-weight:750}.supply-brief-facts span{font-size:12px;color:var(--muted)}.supply-brief-compact{display:block;background:radial-gradient(ellipse at top right,color-mix(in srgb,var(--blue) 9%,transparent),transparent 65%),var(--surface)}@media(max-width:700px){.supply-brief{grid-template-columns:1fr}.supply-brief>img{height:150px;min-height:0}.supply-brief-copy{padding:22px}.supply-brief-facts{gap:16px;flex-wrap:wrap}.supply-brief-facts>div{flex:1;min-width:90px}.supply-brief h2{font-size:22px}}</style>

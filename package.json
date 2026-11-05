@@ -1,0 +1,41 @@
+{
+  "name": "techguru",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:api": "node scripts/dev.mjs",
+    "db:migrate": "node scripts/local.mjs migrate",
+    "db:seed": "node scripts/local.mjs seed",
+    "db:check": "node scripts/local.mjs check",
+    "db:sql": "node scripts/local.mjs sql",
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "test:server": "node --test tests/integration/*.test.mjs",
+    "test:d1": "node scripts/smoke.mjs",
+    "db:setup": "npm run db:migrate && npm run db:seed && npm run db:check",
+    "check": "npm run typecheck:server && npm run test:server && npm run build"
+  },
+  "dependencies": {
+    "jose": "^6.2.13",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261028.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "miniflare": "5.20261023.1-beta",
+    "rolldown": "1.2.14",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "wrangler": "^4.154.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
