@@ -68,7 +68,7 @@ export async function googleRoute(request:Request,env:Env):Promise<Response|null
    if(!user.is_active||!await verifyPassword(input.password??'',user.password_hash)){await repo.failedLogin(metadata,await tokenHash(String(p.email)),cutoff);throw new HttpError(401,'INVALID_CREDENTIALS','Для привязки введите пароль существующего аккаунта')}
    if(user.google_sub&&user.google_sub!==p.sub)throw new HttpError(409,'GOOGLE_ALREADY_LINKED','Аккаунт уже связан с другим Google')
   }else{
-   if(!input.phone||!input.full_name)throw new HttpError(422,'PROFILE_REQUIRED','Укажите имя и телефон')
+   if(!input.phone||!input.full_name)throw new HttpError(422,'PROFILE_REQUIRED','Укажите ФИО и телефон')
    if(await repo.duplicate(String(p.email),input.phone))throw new HttpError(409,'ACCOUNT_EXISTS','Телефон уже используется')
    const created=await repo.register({email:String(p.email),phone:input.phone,full_name:input.full_name,password:''},await hashPassword(randomToken()+randomToken()),auditMetadata(request,env))
    user=await repo.userByEmail(created.email!);if(!user)throw Error('Account not created')

@@ -97,9 +97,9 @@ async function submit() {
         <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
           <Input
             v-model="form.full_name"
-            label="ФИО"
+            label="ФИО" hint="Отчество — при наличии"
             icon-left="user"
-            placeholder="Иванов Иван Иванович"
+            placeholder="Например, Иванов Иван"
             autocomplete="name"
             :error="errors.full_name" maxlength="150" required
           />
