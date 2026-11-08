@@ -22,4 +22,4 @@ export interface PublicUser {
   address: string | null
   created_at: string
 }
-export interface AuthUser extends PublicUser { password_hash: string; is_active: number }
+export interface AuthUser extends PublicUser { password_hash: string; is_active: number; email_verified: number; google_sub?: string | null }

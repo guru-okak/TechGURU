@@ -83,6 +83,7 @@ export async function businessRoute(request:Request,env:Env):Promise<Response|nu
    else if(a==='estimate')result=await repo.estimate(rid,z.object({items:z.array(z.object({name:text,quantity:integer.min(1).max(1000),unit_price_cents:integer}).strict()).min(1).max(30),parts_cents:integer,reason:text}).strict().parse(body))
    else if(a==='estimate-decision')result=await repo.decideEstimate(rid,z.object({proposal_id:z.uuid(),accepted:z.boolean()}).strict().parse(body))
    else result=await repo.action(rid,a,action.parse(body))
+  }else if(record&&record[1]==='users'&&record[2]&&request.method==='DELETE'){result=await repo.deleteUser(id.parse(record[2]))
   }else if(record&&['POST','PATCH'].includes(request.method)){
    if((record[2]&&request.method!=='PATCH')||(!record[2]&&request.method!=='POST'))throw new HttpError(405,'METHOD_NOT_ALLOWED','Метод не поддерживается')
    const entity=record[1] as keyof typeof directories

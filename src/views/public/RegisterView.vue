@@ -1,4 +1,5 @@
 <script setup>
+import GoogleSignIn from '../../components/GoogleSignIn.vue'
 import {api} from '../../api/client'
 import { computed, reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
@@ -69,18 +70,8 @@ async function submit() {
     return
   }
 
-  try {
-    await login({ email: input.email, password: input.password })
-    toast('Аккаунт создан')
-    await router.push('/client')
-  } catch {
-    form.password = ''
-    form.passwordRepeat = ''
-    submitError.value = 'Аккаунт создан. Перейдите на страницу входа и войдите с указанным email.'
-    registrationComplete.value = true
-  } finally {
-    loading.value = false
-  }
+  loading.value=false
+  router.push({path:'/verify-email',query:{email:input.email}})
 }
 </script>
 
@@ -102,6 +93,7 @@ async function submit() {
           <p class="mt-1 text-sm text-muted">Личный кабинет для ваших заявок</p>
         </div>
 
+        <GoogleSignIn />
         <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
           <Input
             v-model="form.full_name"

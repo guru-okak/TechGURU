@@ -1,3 +1,4 @@
+import {pendingEmailCookie} from '../security/pending-email.ts'
 import type { Env } from '../env.ts'
 import { loginSchema, registerSchema } from '../../shared/contracts/auth.ts'
 import { HttpError, json, readJson } from '../middleware/http.ts'
@@ -17,7 +18,8 @@ const routes: Record<string, Record<string, Handler>> = {
     requireCsrf(request)
     await auth.requireGuest(request,env)
     const input = registerSchema.parse(await readJson(request))
-    return json({ data: { user: await auth.register(input, request, env) } }, 201)
+    const user=await auth.register(input,request,env)
+    return json({data:{user}},201,{'Set-Cookie':await pendingEmailCookie(env,user.id)})
   } },
   '/api/auth/login': { POST: async (request, env) => {
     requireCsrf(request)

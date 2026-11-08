@@ -22,3 +22,9 @@ techguru_dashboard_updated*.html
 docs/*.jpg
 docs/*.png
 docs/*.json
+
+# Downloaded OAuth credentials and private key files
+client_secret*.json
+credentials*.json
+*.pem
+*.key

@@ -1,4 +1,5 @@
 <script setup>
+import {counted} from '../api/pluralRu'
 import { computed, ref } from 'vue'
 import Button from '../components/ui/Button.vue'
 import Card from '../components/ui/Card.vue'
@@ -41,7 +42,7 @@ function selectedService(s) { return { path: '/client/requests/new', query: { se
   <section class="client-welcome">
    <div class="welcome-photo"><img :src="requestPhoto" alt="Оформление обращения с телефона в спокойной домашней обстановке" fetchpriority="high"/></div>
    <div class="welcome-copy"><span class="client-kicker"><span></span>ВАШ ЛИЧНЫЙ СЕРВИС</span><h1>Здравствуйте,<br>{{ current.name.split(' ')[0] }}</h1><p>Техника — в надёжных руках.<br>Заявки, статусы и всё важное о ремонте — здесь.</p><div class="welcome-actions"><Button to="/client/requests/new" variant="primary" size="lg">Создать заявку<template #iconRight><SvgIcon name="plus" :size="18"/></template></Button><Button to="/client/requests" variant="outline" size="lg">Мои заявки</Button></div></div>
-   <RouterLink to="/client/notifications" class="welcome-notice"><span><SvgIcon name="bell" :size="19"/></span><div><strong>{{ unreadCount ? `${unreadCount} новых уведомлений` : 'Вы в курсе всех событий' }}</strong><small>Обновления по вашим обращениям</small></div><SvgIcon name="arrowRight" :size="16"/></RouterLink>
+
   </section>
   <PageState :loading="loading || page.loading.value" :error="!!error || page.error.value" @retry="retry">
    <section class="client-metrics" aria-label="Ваши заявки в цифрах"><RouterLink v-for="m in metrics" :key="m.label" :to="m.to"><Card padding="md" class="client-metric"><div class="metric-heading"><span>{{ m.label }}</span><span class="metric-icon" :class="m.tone"><SvgIcon :name="m.icon" :size="19"/></span></div><strong>{{ m.value }}</strong><p>{{ m.note }}<SvgIcon name="arrowRight" :size="14"/></p></Card></RouterLink></section>

@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "techguru",
+  "main": "server/index.ts",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": true,
+  "triggers": {
+    "crons": [
+      "0 * * * *",
+      "0 0 * * *"
+    ]
+  },
+  "vars": {
+    "APP_ENV": "production",
+    "ENABLE_LOCAL_CHECKS": "false"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "techguru-production",
+      "database_id": "30a8e639-9594-4ac9-9576-933849408cc6",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+  "tsconfig": "tsconfig.server.json",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "account_id": "e981ca2070c8ebfcc0099e586e37e802"
+}

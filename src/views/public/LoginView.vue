@@ -1,4 +1,5 @@
 <script setup>
+import GoogleSignIn from '../../components/GoogleSignIn.vue'
 import { computed, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import Button from '../../components/ui/Button.vue'
@@ -19,41 +20,14 @@ const { isDark } = useTheme()
 const form = reactive({ email: '', password: '' })
 const errors = reactive({})
 const loading = ref(false)
-const submitError=ref('')
+const submitError=ref(route.query.google_error?'Не удалось войти через Google. Попробуйте снова или используйте почту.':'')
 const showPassword = ref(false)
 
-// Учебные серверные аккаунты. Пароль и роль проверяет API.
-const DEMO_ACCOUNTS = [
-  { role: 'client', label: 'Клиент', email: 'anna@techguru.example', password: 'ClientDemo2026!', icon: 'user' },
-  { role: 'master', label: 'Мастер', email: 'onsite@techguru.example', password: 'MasterDemo2026!', icon: 'wrench' },
-  {
-    role: 'admin',
-    label: 'Администратор',
-    email: 'admin@techguru.example',
-    password: 'AdminDemo2026!',
-    icon: 'gear',
-  },
-]
-
 const emailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-
-// Подсветка выбранного демо-аккаунта (данные формы совпали с демо-набором).
-const selectedRole = computed(
-  () =>
-    DEMO_ACCOUNTS.find((a) => a.email === form.email && a.password === form.password)?.role ??
-    null,
-)
 
 const bgStyle = computed(() => ({
   backgroundImage: `url(${isDark.value ? bgDark : bgLight})`,
 }))
-
-function fillDemo(account) {
-  form.email = account.email
-  form.password = account.password
-  delete errors.email
-  delete errors.password
-}
 
 function validate() {
   Object.keys(errors).forEach((k) => delete errors[k])
@@ -74,7 +48,7 @@ async function submit() {
   loading.value = true
   let role
   try { role = await login({email:form.email.trim(),password:form.password}) }
-  catch(error){submitError.value=error.message;Object.assign(errors,Object.fromEntries(Object.entries(error.fields??{}).map(([k,v])=>[k,v[0]])));toast(error.message);loading.value=false;return}
+  catch(error){if(error.code==='EMAIL_UNVERIFIED'){loading.value=false;router.push({path:'/verify-email',query:{email:form.email}});return}submitError.value=error.message;Object.assign(errors,Object.fromEntries(Object.entries(error.fields??{}).map(([k,v])=>[k,v[0]])));toast(error.message);loading.value=false;return}
   loading.value = false
   toast(
     `Вы вошли как ${role === 'admin' ? 'администратор' : role === 'master' ? 'мастер' : 'клиент'}`,
@@ -103,6 +77,7 @@ async function submit() {
           <p class="mt-1 text-sm text-muted">Личный кабинет сервисного центра</p>
         </div>
 
+        <GoogleSignIn />
         <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
           <Input
             v-model="form.email"
@@ -136,35 +111,13 @@ async function submit() {
             </template>
           </Input>
 
+          <RouterLink to="/forgot-password" class="justify-self-end -mt-1 text-[13px] text-muted transition-colors hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand rounded">Забыли пароль?</RouterLink>
+
           <p v-if="submitError" role="alert" class="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{{submitError}}</p><Button type="submit" variant="primary" block size="lg" :loading="loading" class="mt-1">
             <template #iconLeft><SvgIcon name="logout" :size="18" class="rotate-180" /></template>
             {{ loading ? 'Входим…' : 'Войти' }}
           </Button>
         </form>
-
-        <div class="mt-6 border-t border-line pt-5">
-          <p class="text-center text-[12px] font-semibold text-muted">
-            Демо-аккаунты (нажмите, чтобы подставить)
-          </p>
-          <div class="mt-3 grid grid-cols-3 gap-2.5">
-            <button
-              v-for="a in DEMO_ACCOUNTS"
-              :key="a.role"
-              type="button"
-              class="flex flex-col items-center gap-2 rounded-xl border px-2 py-3 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              :class="
-                selectedRole === a.role
-                  ? 'border-brand bg-brand/5 text-brand ring-1 ring-brand'
-                  : 'border-line text-muted hover:border-brand/40 hover:bg-surface2 hover:text-content'
-              "
-              :aria-pressed="selectedRole === a.role"
-              @click="fillDemo(a)"
-            >
-              <SvgIcon :name="a.icon" :size="20" class="text-brand" />
-              {{ a.label }}
-            </button>
-          </div>
-        </div>
 
         <p class="mt-6 text-center text-sm text-muted">
           Нет аккаунта?

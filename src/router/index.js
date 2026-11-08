@@ -1,3 +1,4 @@
+import {beginNavigation,endNavigation} from '../composables/navigationProgress'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useSession } from '../composables/useSession'
 import {connectionError} from '../api/client'
@@ -16,6 +17,9 @@ const routes = [
     path: '/',
     component: () => import('../layouts/PublicLayout.vue'),
     children: [
+      {path:'google-complete',component:()=>import('../views/public/GoogleCompleteView.vue'),meta:{title:'Вход Google',public:true,guestOnly:true}},
+      {path:'verify-email',component:()=>import('../views/public/EmailAccountView.vue'),meta:{title:'Подтверждение почты',public:true,guestOnly:true}},
+      {path:'forgot-password',component:()=>import('../views/public/EmailAccountView.vue'),meta:{title:'Восстановление пароля',public:true,guestOnly:true}},
       {
         path: '',
         name: 'landing',
@@ -167,6 +171,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  beginNavigation()
   await useSession().initialize()
   const { role, isAuthenticated, homeFor } = useSession()
   const allowedRoles = ROLE_ACCESS[to.meta.role]
@@ -193,10 +198,11 @@ router.beforeEach(async (to) => {
 })
 
 router.afterEach((to) => {
+  endNavigation()
   connectionError.value=''
   const title = to.meta.title
   document.title = title ? `${title} — ${APP_NAME}` : APP_NAME
 })
-router.onError(error=>{connectionError.value=error.message})
+router.onError(error=>{endNavigation();connectionError.value=error.message})
 
 export default router

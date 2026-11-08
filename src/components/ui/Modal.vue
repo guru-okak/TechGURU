@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
       <div
         v-if="modelValue"
         ref="dialog"
-        class="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-4"
+        class="modal-viewport fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="title ? 'modal-title' : undefined"
@@ -114,12 +114,12 @@ onBeforeUnmount(() => {
 
         <div
           ref="panel"
-          class="modal-panel relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl"
+          class="modal-panel relative z-10 flex min-h-0 w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl"
           :class="sizeClass"
         >
           <header
             v-if="title || !hideClose"
-            class="flex items-start gap-4 px-5"
+            class="modal-heading flex shrink-0 items-start gap-4 px-5"
             :class="compact ? 'pt-5' : 'border-b border-line py-4'"
           >
             <slot name="icon" />
@@ -147,13 +147,13 @@ onBeforeUnmount(() => {
             </button>
           </header>
 
-          <div v-if="$slots.default" class="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <div v-if="$slots.default" class="modal-body min-h-0 flex-1 overflow-y-auto px-5 py-5">
             <slot />
           </div>
 
           <footer
             v-if="$slots.footer"
-            class="flex flex-wrap justify-end gap-2 px-5"
+            class="modal-footer flex shrink-0 flex-wrap justify-end gap-2 px-5"
             :class="compact ? 'pb-5 pt-4' : 'border-t border-line py-4'"
           >
             <slot name="footer" :close="close" />
@@ -166,9 +166,23 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .modal-panel {
+  max-height:calc(100vh - 32px);
+  max-height:calc(100dvh - 32px);
+  min-width:0;
   animation: modal-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+
+.modal-viewport{height:100vh;height:100dvh;overflow:hidden}
+.modal-body{overscroll-behavior:contain;overflow-wrap:anywhere}
+@media(max-width:639px){
+ .modal-viewport{padding: max(12px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));align-items:center}
+ .modal-panel{max-height:100%;border-radius:18px}
+ .modal-heading{padding:16px;align-items:center}
+ .modal-body{padding:18px 16px}
+ .modal-footer{padding:12px 16px;gap:10px}
+ .modal-footer :deep(button),.modal-footer :deep(a){flex:1 1 auto;min-width:0;white-space:normal;justify-content:center}
+}
 @keyframes modal-in {
   from {
     opacity: 0;

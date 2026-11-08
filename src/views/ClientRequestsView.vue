@@ -99,8 +99,8 @@ function exportCsv() {
 
     <Card padding="md" class="min-w-0">
       <!-- Панель фильтров -->
-      <div class="flex flex-wrap items-end gap-3">
-        <div class="min-w-0 flex-1 basis-full md:hidden">
+      <div class="request-filters">
+        <div class="request-search md:hidden">
           <Input
             v-model="search"
             type="search"
@@ -112,16 +112,16 @@ function exportCsv() {
         <Select
           v-model="status"
           :options="requestStatuses"
-          class="w-auto min-w-[160px]"
+
         />
 
         <Select
           v-model="period"
           :options="periodOptions"
-          class="w-auto min-w-[180px]"
+
         />
 
-        <Button class="ml-auto" @click="exportCsv">
+        <Button class="request-export" @click="exportCsv">
           <template #iconLeft><SvgIcon name="download" :size="18" class="text-muted" /></template>
           Экспорт в CSV
         </Button>
@@ -172,3 +172,11 @@ function exportCsv() {
     <ClientRequestDetails :request="selected" @close="selected = null" @changed="load" />
   </div>
 </template>
+
+<style scoped>
+.request-filters{display:grid;grid-template-columns:minmax(160px,1fr) minmax(180px,1fr) auto;gap:12px;align-items:end}
+.request-search{grid-column:1/-1;min-width:0}
+.request-export{justify-self:end}
+@media(max-width:767px){.request-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.request-export{grid-column:1/-1;width:100%;justify-content:center}}
+@media(max-width:520px){.request-filters{grid-template-columns:minmax(0,1fr)}}
+</style>

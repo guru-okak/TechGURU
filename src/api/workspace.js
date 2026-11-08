@@ -42,7 +42,7 @@ function apply(data){
  replace(requestParts,r.requestParts);replace(requestStatusHistory,r.history.map(h=>({...h,status:h.to_status})));replace(clientRatings,r.ratings)
  masterReports.value=r.reports??[]
  const now=Date.now(),today=noticeDay.format(now),yesterday=noticeDay.format(now-86400000)
- noticeRecords.value=r.notifications.map(n=>{const date=new Date(n.created_at),day=noticeDay.format(date);return {...n,unread:!n.is_read,title:n.type==='master_assigned'?'Назначение заявки':'Уведомление',text:notificationText(n.message),group:day===today?'today':day===yesterday?'yesterday':'earlier',time:noticeTime.format(date),type:n.type==='master_assigned'?'assignment':n.type}})
+ noticeRecords.value=r.notifications.map(n=>{const date=new Date(n.created_at),day=noticeDay.format(date);return {...n,unread:!n.is_read,title:({master_assigned:'Назначен мастер',rating_received:'Новый отзыв клиента',estimate_updated:'Смета требует согласования',assignment_removed:'Заявка передана другому мастеру',parts_requested:'Запрошены запчасти',status_changed:'Изменение статуса'})[n.type]??'Обновление по заявке',text:notificationText(n.message),group:day===today?'today':day===yesterday?'yesterday':'earlier',time:noticeTime.format(date),type:n.type==='master_assigned'?'assignment':n.type}})
 
  replace(operations.adminNotices,r.notifications)
  if(r.user){useSession().accept(r.user);Object.assign(profile.profileUser,r.user)}

@@ -1,3 +1,4 @@
+import {pendingEmailCookie} from '../security/pending-email.ts'
 import type { Env } from '../env.ts'
 import type { RegisterInput } from '../../shared/contracts/auth.ts'
 import { AuthRepository, publicUser } from '../repositories/auth.ts'
@@ -15,7 +16,7 @@ export function auditMetadata(request: Request, env: Env): AuditMetadata {
   }
 }
 function unauthenticated(): HttpError { return new HttpError(401, 'UNAUTHENTICATED', 'Неверный email, пароль или недействительная сессия') }
-function cutoff(): string { return new Date(Date.now() - 15 * 60 * 1000).toISOString() }
+function cutoff(): string { return new Date(Date.now() - 5 * 60 * 1000).toISOString() }
 function expiry(): string { return new Date(Date.now() + REFRESH_TTL * 1000).toISOString() }
 export async function requireGuest(request:Request,env:Env){
  let active=false
@@ -40,8 +41,8 @@ export async function login(input: { email: string; password: string }, request:
   const metadata = auditMetadata(request, env)
   const blocked = await repository.blockedUntil(metadata.ip, cutoff())
   if (blocked) {
-    const retry = Math.max(1, Math.ceil((Date.parse(blocked) + 900000 - Date.now()) / 1000))
-    throw new HttpError(429, 'LOGIN_RATE_LIMITED', 'Слишком много попыток входа. Повторите через 15 минут', { 'Retry-After': String(retry) })
+    const retry = Math.max(1, Math.ceil((Date.parse(blocked) + 300000 - Date.now()) / 1000))
+    throw new HttpError(429, 'LOGIN_RATE_LIMITED', 'Слишком много попыток входа. Повторите через 5 минут', { 'Retry-After': String(retry) })
   }
   const user = await repository.userByEmail(input.email)
   const valid = await verifyPassword(input.password, user?.password_hash ?? DUMMY_PASSWORD_HASH)
@@ -49,6 +50,7 @@ export async function login(input: { email: string; password: string }, request:
     await repository.failedLogin(metadata, await tokenHash(input.email), cutoff())
     throw unauthenticated()
   }
+  if(!user.email_verified)throw new HttpError(403,'EMAIL_UNVERIFIED','Подтвердите электронную почту',{'Set-Cookie':await pendingEmailCookie(env,user.id)})
   const refresh = await createRefresh()
   const sessionId = await repository.createSession(user, refresh, expiry(), metadata)
   const access = await createAccess(env, user.id, user.role, sessionId)

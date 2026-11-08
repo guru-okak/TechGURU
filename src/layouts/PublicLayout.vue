@@ -11,16 +11,18 @@ import logoLight from '../assets/Общее/logo_light.png'
 import logoDark from '../assets/Общее/logo_dark.png'
 
 const route = useRoute()
-const isAuthPage = computed(() => ['login', 'register'].includes(route.name))
+const isAuthPage = computed(() => ['/login','/register','/verify-email','/forgot-password','/google-complete'].includes(route.path))
 const { isAuthenticated, current, homeFor, logout } = useSession()
 const { isDark, toggleTheme } = useTheme()
 
+const activeSection=ref('')
 const scrolled = ref(false)
 const menuOpen = ref(false)
 const phoneUrl = phone => `tel:${phone.replace(/[^+\d]/g, '')}`
 function scrollToTop() { window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }) }
 
 function onScroll() {
+  activeSection.value=['services','advantages','how-it-works','contacts'].filter(id=>{const el=document.getElementById(id);return el&&el.getBoundingClientRect().top<=160}).at(-1)??''
   scrolled.value = window.scrollY > 8
 }
 
@@ -53,6 +55,7 @@ watch(
       :class="scrolled ? 'border-line shadow-card' : 'border-transparent'"
     >
       <div class="public-header-inner mx-auto flex h-[84px] w-full max-w-[1536px] items-center gap-2 sm:gap-4 px-4 sm:px-6 lg:px-12">
+          <span class="inline-flex lg:hidden"><Button variant="ghost" size="icon" :aria-expanded="menuOpen" aria-controls="guest-mobile-menu" :aria-label="menuOpen ? 'Закрыть меню' : 'Открыть меню'" @click="menuOpen = !menuOpen"><SvgIcon :name="menuOpen ? 'x' : 'menu'" :size="21" /></Button></span>
         <RouterLink to="/" class="flex shrink-0 items-center" aria-label="TechGURU — на главную">
           <img :src="logoLight" alt="TechGURU" class="h-9 w-auto dark:hidden sm:h-[52px]" />
           <img :src="logoDark" alt="" class="hidden h-9 w-auto dark:block sm:h-[52px]" />
@@ -65,7 +68,7 @@ watch(
             :key="link.to"
             :to="link.to"
             class="header-nav-link rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-surface2 hover:text-content"
-            :class="{ 'is-current': route.path === '/' && route.hash && link.to === '/' + route.hash }"
+            :class="{ 'is-current': route.path === '/' && link.to === '/#' + activeSection }"
           >
             {{ link.label }}
           </RouterLink>
@@ -73,7 +76,7 @@ watch(
 
         <div class="header-actions ml-auto flex items-center gap-2">
           <a :href="phoneUrl((servicePoints[0]?.phone??'+7 800 123-45-67'))" class="header-contact"><span><SvgIcon name="phone" :size="16" /></span><span>{{ (servicePoints[0]?.phone??'+7 800 123-45-67') }}</span></a>
-          <span class="inline-flex lg:hidden"><Button variant="ghost" size="icon" :aria-expanded="menuOpen" aria-controls="guest-mobile-menu" :aria-label="menuOpen ? 'Закрыть меню' : 'Открыть меню'" @click="menuOpen = !menuOpen"><SvgIcon :name="menuOpen ? 'x' : 'menu'" :size="21" /></Button></span>
+
           <Button
             variant="ghost"
             size="icon"
@@ -84,11 +87,11 @@ watch(
           </Button>
 
           <template v-if="isAuthenticated">
-            <span class="hidden sm:inline-flex"><Button variant="outline" size="sm" @click="logout">Выйти</Button></span>
-            <Button :to="homeFor()" variant="secondary">
-              <template #iconLeft><SvgIcon name="grid" :size="18" /></template>
-              <span class="hidden sm:inline">{{ current.caption }}</span>
-              <span class="sm:hidden">Кабинет</span>
+            <span class="hidden sm:inline-flex"><Button variant="outline" class="header-signout" @click="logout">Выйти</Button></span>
+            <Button :to="homeFor()" variant="secondary" class="cabinet-home-button" aria-label="Открыть личный кабинет">
+              <template #iconLeft><SvgIcon name="home" :size="18" /></template>
+              <span class="hidden sm:inline">Кабинет</span>
+
             </Button>
           </template>
           <template v-else>
@@ -179,4 +182,18 @@ watch(
 .auth-footer{display:flex;align-items:center;justify-content:center;gap:30px;min-height:56px;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:10px}
 .auth-footer>a{display:flex;align-items:center;gap:6px}.auth-footer>a:hover{color:var(--blue)}
 @media(max-width:600px){.auth-header-inner{padding-inline:18px}.auth-logo{height:36px}.auth-header-actions{gap:8px}.auth-home{font-size:11px;gap:5px}.auth-footer{gap:12px;flex-wrap:wrap;font-size:9px}.auth-main :deep(>div){padding-block:24px}}
+</style>
+
+<style scoped>.header-nav-link.is-current{color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--blue) 20%,transparent)}</style>
+
+<style scoped>.header-actions{flex-shrink:0}.header-actions>button{width:40px;height:40px;flex:0 0 40px;transform:none!important}.cabinet-home-button{flex-shrink:0}@media(max-width:639px){.public-header-inner{gap:8px!important;padding-inline:12px!important}.public-header-inner>a img{max-width:110px;height:auto}.cabinet-home-button{width:40px;height:40px;padding:0;gap:0}.cabinet-home-button>span:not(:first-child){display:none}.header-actions{gap:4px!important}.equipment-strip>div{color:var(--text);font-weight:650}}:global([data-theme=light]) .equipment-art,:global([data-theme=light]) .catalog-device-art{filter:contrast(1.18) saturate(1.12) drop-shadow(0 2px 2px #1d4c9430)}:global([data-theme=light]) .equipment-strip>div{background:#edf3fc;border-color:#c5d3e7;color:#263e60}</style>
+
+<style scoped>
+.header-nav{min-height:44px;padding:4px!important;border-radius:14px!important;gap:3px!important}
+.header-nav-link{display:flex;align-items:center;justify-content:center;min-height:36px;padding:8px 13px!important;border-radius:10px!important;font-size:13px!important;line-height:20px;white-space:nowrap}
+.header-actions{gap:8px!important;align-items:center}
+.header-signout,.cabinet-home-button{height:40px!important;min-height:40px!important;border-radius:11px!important;font-size:13px!important;line-height:20px!important;padding:9px 14px!important;box-shadow:none!important}
+.header-actions>button{height:40px!important;width:40px!important;border-radius:11px!important;box-shadow:none!important}
+.header-contact{min-height:40px}
+@media(max-width:639px){.cabinet-home-button{width:40px!important;padding:0!important}.header-actions{gap:4px!important}}
 </style>

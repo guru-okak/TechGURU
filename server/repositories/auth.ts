@@ -10,14 +10,14 @@ export class AuthRepository {
   private db: Env['DB']
   constructor(db: Env['DB']) { this.db = db }
   userByEmail(email: string): Promise<AuthUser | null> {
-    return this.db.prepare(`SELECT ${PUBLIC_COLUMNS},password_hash,is_active FROM users WHERE email=?`).bind(email).first<AuthUser>()
+    return this.db.prepare(`SELECT ${PUBLIC_COLUMNS},password_hash,is_active,email_verified,google_sub FROM users WHERE email=?`).bind(email).first<AuthUser>()
   }
   async duplicate(email: string, phone: string): Promise<boolean> {
     return Boolean(await this.db.prepare('SELECT id FROM users WHERE email=? OR phone=? LIMIT 1').bind(email, phone).first())
   }
   async register(input: RegisterInput, hash: string, metadata: AuditMetadata): Promise<PublicUser> {
     const results = await this.db.batch<PublicUser>([
-      this.db.prepare(`INSERT INTO users(full_name,full_name_fold,phone,email,role,password_hash) VALUES (?,?,?,?,'client',?) RETURNING ${PUBLIC_COLUMNS}`)
+      this.db.prepare(`INSERT INTO users(full_name,full_name_fold,phone,email,role,password_hash,email_verified) VALUES (?,?,?,?,'client',?,0) RETURNING ${PUBLIC_COLUMNS}`)
         .bind(input.full_name, input.full_name.toLocaleLowerCase('ru-RU'), input.phone, input.email, hash),
       this.db.prepare("INSERT INTO audit_log(user_id,role,action,entity_type,entity_id,details,ip_address,user_agent) SELECT id,'client','register','user',id,'{}',?,? FROM users WHERE email=?")
         .bind(metadata.ip, metadata.userAgent, input.email),

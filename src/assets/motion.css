@@ -13,6 +13,7 @@ input,textarea,select{transition:border-color var(--motion-fast) ease,box-shadow
 @media(hover:hover) and (pointer:fine){
   .btn-base:hover:not(:disabled):not([aria-disabled=true]){translate:0 -1px}
   .btn-base:hover svg{translate:1px 0}
+  .public-header .btn-base:hover svg,.auth-header .btn-base:hover svg{translate:none}
   .admin-point-card:hover,.catalog-service-card:hover,.channel-card:hover,.client-service-card:hover{translate:0 -3px;box-shadow:0 12px 28px #0717291a}
   .admin-point-card:hover>.admin-point-background{scale:1.025}
 }
@@ -25,3 +26,8 @@ input,textarea,select{transition:border-color var(--motion-fast) ease,box-shadow
   .admin-point-card:hover>.admin-point-background{scale:1!important}
 }
 .stagger>*{animation-duration:var(--motion-reveal);animation-timing-function:var(--motion-ease);animation-delay:min(calc(var(--i,0)*35ms),140ms)}
+
+.scroll-reveal-pending{opacity:0}
+.image-loading{opacity:.05;transition:opacity 260ms ease}
+.image-ready{opacity:1;transition:opacity 260ms ease}
+@media(prefers-reduced-motion:reduce){.scroll-reveal-pending{opacity:1}.image-loading,.image-ready{transition:none}}

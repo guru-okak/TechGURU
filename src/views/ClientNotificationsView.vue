@@ -1,4 +1,7 @@
 <script setup>
+import Modal from '../components/ui/Modal.vue'
+const selectedNotice=ref(null)
+function openNotice(n){selectedNotice.value=n;markRead(n.id)}
 import WorkspaceHero from '../components/WorkspaceHero.vue'
 import { clientHeaderMedia } from '../data/clientHeaderMedia'
 import { computed, ref } from 'vue'
@@ -39,6 +42,7 @@ const grouped = computed(() =>
 
 <template>
   <div class="grid gap-6">
+    <Modal :model-value="!!selectedNotice" @update:model-value="v=>{if(!v)selectedNotice=null}" :title="selectedNotice?.title??'Уведомление'"><p class="whitespace-pre-wrap break-words leading-relaxed">{{selectedNotice?.text}}</p><p class="mt-4 text-sm text-muted">{{selectedNotice?.time}}</p><template #footer><Button v-if="selectedNotice?.request_id" variant="primary" :to="'/client/requests?request='+selectedNotice.request_id">Открыть заявку</Button><Button variant="outline" @click="selectedNotice=null">Закрыть</Button></template></Modal>
     <WorkspaceHero title="Уведомления" description="Следите за назначением мастера, поступлением запчастей и готовностью техники." eyebrow="НОВОСТИ ВАШЕГО РЕМОНТА" :image="clientHeaderMedia.notifications"/>
     <div class="flex flex-wrap items-center justify-between gap-4">
       <button type="button" class="btn" :disabled="!unreadCount" @click="markAllRead">
@@ -69,7 +73,7 @@ const grouped = computed(() =>
             type="button"
             class="card card-hover flex w-full items-start gap-3 p-4 text-left"
             :class="n.unread ? 'border-brand/30 bg-brand/5' : ''"
-            @click="markRead(n.id)"
+            @click="openNotice(n)"
           >
             <span
               class="grid h-10 w-10 shrink-0 place-items-center rounded-full"

@@ -1,59 +1,39 @@
-import { onMounted, onBeforeUnmount } from 'vue'
+import {onMounted,onBeforeUnmount} from 'vue'
 
-// One-time viewport reveals. Content stays visible when motion or JS is disabled.
-export function useSiteMotion() {
-  let observer, changes, frame, preference
-  const observed = new WeakSet()
-  const active = new Set()
-  const selector = 'main section, main .master-page-intro, main .client-welcome, main .card-surface, main .admin-story, main .catalog-service-card'
-  const ease = 'cubic-bezier(0.2, 0.8, 0.2, 1)'
-  function cancelAnimations() { active.forEach(a => a.cancel()); active.clear() }
-  function scan() {
-    frame = null
-    document.querySelectorAll(selector).forEach(el => {
-      if (observed.has(el) || el.closest('[role="dialog"]')) return
-      // Don't animate nested blocks twice, or move a focused form.
-      if (el.parentElement?.closest(selector) || el.querySelector('form') || el.matches('form')) return
-      observed.add(el)
-      observer.observe(el)
-    })
-  }
-  function scheduleScan() { if (!frame) frame = requestAnimationFrame(scan) }
-  function onToggle(event) {
-    const el = event.target
-    if (preference.matches || !el.matches?.('.faq-list details[open]')) return
-    const content = el.querySelector('p')
-    if (content) play(content, [{opacity:0,transform:'translateY(-4px)'},{opacity:1,transform:'none'}], 220)
-  }
-  function play(el, frames, duration, delay = 0) {
-    if (!el.animate) return
-    const animation = el.animate(frames, {duration, delay, easing:ease})
-    active.add(animation)
-    animation.finished.then(() => active.delete(animation), () => active.delete(animation))
-  }
-  onMounted(() => {
-    preference = matchMedia('(prefers-reduced-motion: reduce)')
-    if (!('IntersectionObserver' in window)) return
-    observer = new IntersectionObserver(entries => {
-      let index = 0
-      entries.forEach(({isIntersecting, target}) => {
-        if (!isIntersecting) return
-        observer.unobserve(target)
-        if (preference.matches || target.contains(document.activeElement)) return
-        const hero = target.matches('.master-page-intro,.client-welcome')
-        play(target, [{opacity:0,transform:`translateY(${hero?8:12}px)`},{opacity:1,transform:'none'}], hero?420:360, Math.min(index++ * 35, 105))
-      })
-    }, {threshold:0, rootMargin:'0px 0px -24px 0px'})
-    changes = new MutationObserver(scheduleScan)
-    changes.observe(document.getElementById('app'), {childList:true,subtree:true})
-    preference.addEventListener('change', cancelAnimations)
-    document.addEventListener('toggle',onToggle,true)
-    scan()
+// Observe individual cards, including landing sections outside <main>.
+export function useSiteMotion(){
+ let reveal,images,changes,frame,preference
+ const seen=new WeakSet(),seenImages=new WeakSet(),pending=new Set(),animations=new Set()
+ const selector='.guest-section .section-heading,.guest-section .service-card,.guest-section .channel-card,.guest-section .benefit-card,.guest-section .steps-grid>li,.guest-section .point-card,.guest-section .contact-map,.equipment-strip,.guest-final,.final-cta,.faq-list details,.client-welcome,.master-page-intro,main .card-surface,main .client-metric,main .client-service-photo,main .client-section-head,main .card,main .cabinet-support'
+ function show(el){el.classList.remove('scroll-reveal-pending');pending.delete(el)}
+ function stop(){pending.forEach(show);animations.forEach(a=>a.cancel());animations.clear()}
+ function warm(img){
+  images?.unobserve(img)
+  const finish=()=>{img.classList.remove('image-loading');img.classList.add('image-ready')}
+  if(img.complete){finish();return}
+  img.classList.add('image-loading');img.addEventListener('load',finish,{once:true});img.addEventListener('error',finish,{once:true});img.loading='eager'
+ }
+ function scan(){frame=null
+  document.querySelectorAll('img').forEach(img=>{if(seenImages.has(img))return;seenImages.add(img);if(images)images.observe(img)})
+  if(!reveal||preference.matches)return
+  document.querySelectorAll(selector).forEach(el=>{
+   if(seen.has(el)||el.closest('[role="dialog"],form')||el.parentElement?.closest(selector)||el.querySelector('form'))return
+   seen.add(el)
+   // Never hide content already in view or above a restored scroll position.
+   if(el.getBoundingClientRect().top>innerHeight){el.classList.add('scroll-reveal-pending');pending.add(el)}
+   reveal.observe(el)
   })
-  onBeforeUnmount(() => {
-    observer?.disconnect(); changes?.disconnect(); cancelAnimationFrame(frame)
-    preference?.removeEventListener('change',cancelAnimations)
-    document.removeEventListener('toggle',onToggle,true)
-    cancelAnimations()
-  })
+ }
+ function schedule(){if(!frame)frame=requestAnimationFrame(scan)}
+ function focus(event){let node=event.target;while(node){if(pending.has(node))show(node);node=node.parentElement}}
+ onMounted(()=>{
+  preference=matchMedia('(prefers-reduced-motion: reduce)')
+  if('IntersectionObserver' in window){
+   images=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)warm(e.target)}),{rootMargin:'850px 0px'})
+   reveal=new IntersectionObserver(entries=>{let index=0;for(const {target,isIntersecting} of entries){if(!isIntersecting)continue;reveal.unobserve(target);const wasPending=pending.has(target);show(target);if(!wasPending||preference.matches||target.contains(document.activeElement))continue;const animation=target.animate([{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'translateY(0)'}],{duration:520,delay:Math.min(index++*55,165),easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'});animations.add(animation);animation.finished.then(()=>animations.delete(animation),()=>animations.delete(animation))}},{threshold:0,rootMargin:'0px 0px -20px 0px'})
+  }
+  changes=new MutationObserver(schedule);changes.observe(document.getElementById('app'),{childList:true,subtree:true})
+  preference.addEventListener('change',stop);document.addEventListener('focusin',focus);scan()
+ })
+ onBeforeUnmount(()=>{reveal?.disconnect();images?.disconnect();changes?.disconnect();cancelAnimationFrame(frame);preference?.removeEventListener('change',stop);document.removeEventListener('focusin',focus);stop()})
 }

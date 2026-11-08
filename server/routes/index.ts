@@ -1,3 +1,5 @@
+import {googleRoute} from './google.ts'
+import {emailRoute} from './email.ts'
 import { requestsRoute } from './requests.ts'
 import { businessRoute } from './business.ts'
 import { authRoute } from './auth.ts'
@@ -12,7 +14,7 @@ const routes: Record<string, Record<string, Handler>> = {
   '/api/health': {
     GET: async (_request, _url, repository) => {
       const state = await repository.health()
-      return json({ data: { ...state, status: state.domainTables === 22 ? 'ok' : 'not_ready' } }, state.domainTables === 22 ? 200 : 503)
+      return json({ data: { ...state, status: state.domainTables === 23 ? 'ok' : 'not_ready' } }, state.domainTables === 23 ? 200 : 503)
     },
   },
   '/api/services': {
@@ -37,6 +39,8 @@ const routes: Record<string, Record<string, Handler>> = {
   },
 }
 export async function route(request: Request, env: Env): Promise<Response> {
+  const googleResult=await googleRoute(request,env);if(googleResult)return googleResult
+  const emailResult=await emailRoute(request,env);if(emailResult)return emailResult
   const url = new URL(request.url)
   if (url.pathname === '/api/geocoding') return geocodingRoute(request,env)
   if (url.pathname.startsWith('/api/dev/')) {

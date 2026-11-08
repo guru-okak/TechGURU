@@ -192,7 +192,7 @@ export class BusinessRepository {
   notices(id:number,type:string,message:string) {
     const key=crypto.randomUUID()
     return [this.q(`INSERT INTO notifications(user_id,request_id,type,message,event_key) SELECT user_id,id,?,?,? FROM requests WHERE id=?`,type,message,key+':client',id),
-      this.q(`INSERT INTO notifications(user_id,request_id,type,message,event_key) SELECT u.id,r.id,?,?,?||':'||u.id FROM requests r JOIN users u ON u.role='admin' OR u.id=(SELECT user_id FROM masters WHERE id=r.master_id) WHERE r.id=? AND u.id!=r.user_id AND u.is_active=1`,type,message,key,id),
+      this.q(`INSERT INTO notifications(user_id,request_id,type,message,event_key) SELECT u.id,r.id,?,?,?||':'||u.id FROM requests r JOIN users u ON u.role='admin' OR u.id=(SELECT user_id FROM masters WHERE id=r.master_id) WHERE r.id=? AND u.id!=r.user_id AND u.is_active=1 AND (u.role='admin' OR u.id!=?)`,type,message,key,id,this.actor.id),
       this.q(`INSERT INTO notification_queue(user_id,request_id,channel,recipient,subject,message,event_key) SELECT u.id,r.id,'email',u.email,'TechGURU',?,? FROM requests r JOIN users u ON u.id=r.user_id WHERE r.id=? AND u.email IS NOT NULL`,message,key+':email',id)]
   }
   async stockChange(masterId:number|null,partId:number,quantity:number,reserved:number):Promise<D1PreparedStatement[]> {
@@ -311,12 +311,28 @@ export class BusinessRepository {
     const r=await this.owned(id)
     if(!['completed','closed'].includes(r.status)||!r.master_id)this.fail('Оценка доступна после завершения ремонта')
     await this.batch([this.q('INSERT INTO ratings(request_id,master_id,user_id,rating,comment) VALUES (?,?,?,?,?)',id,r.master_id,this.actor.id,input.rating,input.comment??''),
-      this.q('UPDATE masters SET rating=(SELECT AVG(rating) FROM ratings WHERE master_id=?) WHERE id=?',r.master_id,r.master_id),this.audit('rating.created','request',id)])
+      this.q('UPDATE masters SET rating=(SELECT AVG(rating) FROM ratings WHERE master_id=?) WHERE id=?',r.master_id,r.master_id),this.q("INSERT INTO notifications(user_id,request_id,type,message) SELECT user_id,?,'rating_received',? FROM masters WHERE id=?",id,'Клиент оценил работу: '+input.rating+' из 5. '+(input.comment??''),r.master_id),this.audit('rating.created','request',id)])
     return {ok:true}
   }
   async readNotices(id?:number) {
     await this.batch([this.q('UPDATE notifications SET is_read=1 WHERE user_id=?'+(id?' AND id=?':''),this.actor.id,...(id?[id]:[]))])
     return {ok:true}
+  }
+  async deleteUser(id:number){
+    this.admin()
+    if(id===this.actor.id)this.fail('Нельзя удалить собственную учётную запись',403)
+    if(!await this.one('SELECT id FROM users WHERE id=?',id))this.fail('Пользователь не найден',404)
+    try{
+      await this.env.DB.batch([
+        this.q('UPDATE audit_log SET user_id=NULL WHERE user_id=?',id),
+        this.q('DELETE FROM users WHERE id=? AND id<>?',id,this.actor.id),
+        this.audit('user.deleted','user',id),
+      ])
+    }catch(error){
+      if(/FOREIGN KEY/i.test(String(error)+String((error as Error).cause)))this.fail('У пользователя есть связанные заявки или рабочие данные. Вместо удаления заблокируйте доступ.',409)
+      throw error
+    }
+    return {deleted:true}
   }
   async saveDirectory(entity:string,id:number|null,input:Row) {
     this.admin()

@@ -1,4 +1,6 @@
 <script setup>
+import {counted} from '../api/pluralRu'
+import {matchesSearch} from '../api/searchText'
 import WorkspaceHero from '../components/WorkspaceHero.vue'
 import { clientHeaderMedia } from '../data/clientHeaderMedia'
 import { computed, ref } from 'vue'
@@ -13,13 +15,13 @@ import { serviceCategories, servicesView } from '../data/services'
 const search = ref(''), category = ref('Все')
 const page = useMockPage()
 const services = computed(() => servicesView.filter(s => s.is_active).map(s => ({ ...s })))
-const filtered = computed(() => page.empty.value ? [] : services.value.filter(s => (category.value === 'Все' || category.value === s.category) && `${s.name} ${s.category}`.toLowerCase().includes(search.value.trim().toLowerCase())))
+const filtered = computed(() => page.empty.value ? [] : services.value.filter(s => (category.value === 'Все' || category.value === s.category) && matchesSearch(`${s.name} ${s.category} ${s.description??''}`,search.value)))
 const orderTarget = s => ({ path: '/client/requests/new', query: { service: s.name } })
 </script>
 <template>
  <div class="client-catalog">
-  <WorkspaceHero title="Каталог услуг" description="Выберите услугу и расскажите о поломке. Стоимость согласуем после диагностики." eyebrow="РЕМОНТ И ОБСЛУЖИВАНИЕ" :image="clientHeaderMedia.services"><span class="client-hero-tag">{{services.length}} услуг</span><span class="client-hero-tag">Выезд мастера · Приём в сервисе</span></WorkspaceHero>
-  <Card padding="lg"><div class="catalog-filter-heading"><Input v-model="search" label="Найдите нужную услугу" type="search" icon-left="search" placeholder="Например, замена экрана или ноутбук"/><span>{{ services.length }} услуг в каталоге</span></div><div class="client-category-tabs" aria-label="Категория техники"><button v-for="c in ['Все',...new Set(servicesView.map(s=>s.category))]" :key="c" :aria-pressed="category === c" :class="{ active: category === c }" @click="category = c">{{ c }}</button></div></Card>
+  <WorkspaceHero title="Каталог услуг" description="Выберите услугу и расскажите о поломке. Стоимость согласуем после диагностики." eyebrow="РЕМОНТ И ОБСЛУЖИВАНИЕ" :image="clientHeaderMedia.services"><span class="client-hero-tag">{{counted(services.length,'услуга','услуги','услуг')}}</span><span class="client-hero-tag">Выезд мастера · Приём в сервисе</span></WorkspaceHero>
+  <Card padding="lg"><div class="catalog-filter-heading"><Input v-model="search" label="Найдите нужную услугу" type="search" icon-left="search" placeholder="Например, замена экрана или ноутбук"/><span>{{counted(services.length,'услуга','услуги','услуг')}} в каталоге</span></div><div class="client-category-tabs" aria-label="Категория техники"><button v-for="c in ['Все',...new Set(servicesView.map(s=>s.category))]" :key="c" :aria-pressed="category === c" :class="{ active: category === c }" @click="category = category === c ? 'Все' : c">{{ c }}</button></div></Card>
   <PageState :loading="page.loading.value" :error="page.error.value" :empty="!filtered.length" icon="search" title="Услуги не найдены" description="Попробуйте другое название или выберите другую категорию." @retry="page.retry"><template #action><Button v-if="search || category !== 'Все'" variant="outline" @click="search = ''; category = 'Все'">Сбросить поиск</Button></template>
    <section class="client-catalog-grid"><Card v-for="s in filtered" :key="s.id" padding="none" class="catalog-service-card"><div class="catalog-service-art has-photo"><img :src="s.image" :alt="s.alt" loading="lazy" decoding="async" width="768" height="512"/><span class="catalog-category">{{ s.category }}</span></div><div class="catalog-service-copy"><h2>{{ s.name }}</h2><p>{{ s.description }}</p><div class="catalog-duration"><SvgIcon name="clock" :size="15"/>Ориентировочно {{ s.average_duration_minutes }} мин</div><div class="catalog-service-action"><strong>{{ s.price }}</strong><Button :to="orderTarget(s)" variant="outline" size="sm" :aria-label="`Выбрать: ${s.name}`">Выбрать<SvgIcon name="arrowRight" :size="15"/></Button></div></div></Card></section>
   </PageState>

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref,nextTick } from 'vue'
 
 const STORAGE_KEY = 'techguru-theme'
 
@@ -33,8 +33,13 @@ export function useTheme() {
     initialized.value = true
   }
 
-  function toggleTheme() {
-    applyTheme(isDark.value ? 'light' : 'dark')
+  async function toggleTheme() {
+    if(document.documentElement.classList.contains('theme-changing'))return
+    const target=isDark.value?'light':'dark'
+    if(!document.startViewTransition||window.matchMedia('(prefers-reduced-motion: reduce)').matches){applyTheme(target);return}
+    document.documentElement.classList.add('theme-changing')
+    try{const transition=document.startViewTransition(async()=>{applyTheme(target);await nextTick()});await transition.finished}
+    finally{document.documentElement.classList.remove('theme-changing')}
   }
 
   function setTheme(theme) {
